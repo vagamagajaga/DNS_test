@@ -14,7 +14,7 @@ protocol RouterMain {
 
 protocol RouterProtocol: RouterMain {
     func initialLibraryVC()
-    func showChosenOrNewBook(book: BookModel, doWeChooseBook: Bool)
+    func showChosenOrNewBook(book: BookModel, bookIndex: IndexPath?)
 }
 
 class Router: RouterProtocol {
@@ -37,10 +37,10 @@ class Router: RouterProtocol {
         }
     }
     
-    func showChosenOrNewBook(book: BookModel, doWeChooseBook: Bool) {
+    func showChosenOrNewBook(book: BookModel, bookIndex: IndexPath?) {
         if let navigationController = navigationController {
             guard let bookVC = assemblyBuilder?.createOrEditBookVC(chosenBook: book,
-                                                                   doWeChooseBook: doWeChooseBook,
+                                                                   bookIndex: bookIndex,
                                                                    router: self) else { return }
             navigationController.pushViewController(bookVC, animated: true)
         }

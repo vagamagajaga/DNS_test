@@ -9,11 +9,10 @@ import UIKit
 import CoreData
 
 final class CoreDataService {
+    
     //MARK: - Singleton
     static let shared = CoreDataService()
     private init() {}
-    
-//    var books: [BookModel] = []
     
     func getContext() -> NSManagedObjectContext {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -52,11 +51,12 @@ final class CoreDataService {
             let books = entities.map { entity in
                 return BookModel(name: entity.bookName , author: entity.authorName, year: entity.year)
             }
+            
             return books
         } catch {
             print("Failed to fetch books: \(error)")
             return []
-        }        
+        }
     }
     
     func deleteAllBooks() {
@@ -65,9 +65,11 @@ final class CoreDataService {
         
         do {
             let entities = try context.fetch(fetchRequest)
+            
             for entity in entities {
                 context.delete(entity)
             }
+            
             try context.save()
         } catch {
             print("Failed to delete books: \(error)")
@@ -83,31 +85,73 @@ final class CoreDataService {
             let deletedBook = entities.first { entity in
                 BookModel(name: entity.bookName , author: entity.authorName, year: entity.year) == book
             }
+            
             if let deletedBook {
                 context.delete(deletedBook)
             }
+            
             try context.save()
         } catch {
             print("Failed to delete book: \(error)")
         }
     }
-
-
     
-    func fetchBookByName(_ name: String) -> BookModel? {
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "BookEntity")
+    func fetchBooksMatching(searchString: String) -> [BookModel] {
+        let context = getContext()
+        let fetchRequest: NSFetchRequest<BookEntity> = BookEntity.fetchRequest()
+        
         do {
-            let books = try? getContext().fetch(fetchRequest) as? [BookModel]
-            return books?.first(where: {$0.name == name})
+            let entities = try context.fetch(fetchRequest)
+            let books = entities.map { entity in
+                return BookModel(name: entity.bookName, author: entity.authorName, year: entity.year)
+            }
+            
+            let filteredBooks = books.filter { book in
+                return book.name.lowercased().contains(searchString.lowercased()) ||
+                book.author.lowercased().contains(searchString.lowercased()) ||
+                book.year.lowercased().contains(searchString.lowercased())
+                
+            }
+            
+            return filteredBooks
+        } catch {
+            print("Failed to fetch books: \(error)")
+            return []
         }
     }
     
-    func updateBook(bookName: String) {
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "BookEntity")
+    
+    func sortBooks(by sortType: SortType) -> [BookModel] {
+        let context = getContext()
+        let fetchRequest: NSFetchRequest<BookEntity> = BookEntity.fetchRequest()
+        
         do {
-//            guard let books = try? getContext().fetch(fetchRequest) as? [BookModel],
-//                  let book = books.first(where: {$0.name == bookName}) else { return }
+            var entities = try context.fetch(fetchRequest)
+            
+            switch sortType {
+            case .name:
+                entities.sort { $0.bookName < $1.bookName }
+            case .author:
+                entities.sort { $0.authorName < $1.authorName }
+            case .year:
+                entities.sort { $0.year  < $1.year }
+            }
+            
+            let books = entities.map { entity in
+                return BookModel(name: entity.bookName , author: entity.authorName, year: entity.year)
+            }
+            
+            try context.save()
+            return books
+        } catch {
+            print("Failed to sort books: \(error)")
+            return []
         }
     }
+}
 
+enum SortType {
+    case name
+    case author
+    case year
 }

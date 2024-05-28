@@ -2,7 +2,7 @@
 //  SceneDelegate.swift
 //  DNS_test
 //
-//  Created by mac on 27.05.2024.
+//  Created by Vagan Galstian on 27.05.2024.
 //
 
 import UIKit
@@ -20,10 +20,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let navigationController = UINavigationController()
             let assemblyBuilder = AssemblyModuleBuilder()
             let router = Router(navigationController: navigationController, assemblyBuilder: assemblyBuilder)
-            router.initialStartVC()
+            router.initialLibraryVC()
             window?.rootViewController = navigationController
             window?.makeKeyAndVisible()
         }
     }
 }
-
